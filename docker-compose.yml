@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  assethub-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: assethub-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/assethub
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your_jwt_secret_change_me
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - assethub-network
+
+  mongo:
+    image: mongo:6.0
+    container_name: assethub-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - assethub-network
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: assethub-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - assethub-network
+
+networks:
+  assethub-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  redis-data:
