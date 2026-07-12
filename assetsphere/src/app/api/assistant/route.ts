@@ -12,8 +12,8 @@ export async function POST(req: Request) {
     const underMaintenance = await prisma.asset.count({ where: { status: "Under Maintenance" } })
     const lostAssets = await prisma.asset.count({ where: { status: "Lost" } })
 
-    const systemPrompt = `You are the AssetSphere AI Assistant, a helpful AI built into an Enterprise Resource Planning system.
-Here is the current system context:
+    const systemPrompt = `You are the AssetHub AI Assistant, a helpful AI built into an Enterprise Resource Planning system.
+    You have access to the following organization data:
 - Total Assets Registered: ${totalAssets}
 - Assets Under Maintenance: ${underMaintenance}
 - Lost Assets: ${lostAssets}

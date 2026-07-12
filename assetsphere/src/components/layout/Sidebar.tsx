@@ -36,8 +36,13 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-slate-200 bg-white">
-      <div className="flex h-16 shrink-0 items-center px-6 border-b border-slate-200">
-        <span className="text-xl font-bold text-blue-600">AssetSphere</span>
+      <div className="p-6">
+        <Link href="/dashboard" className="flex items-center space-x-3 group">
+          <div className="bg-blue-600 p-2 rounded-xl group-hover:bg-blue-700 transition-colors">
+            <LayoutDashboard className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-xl font-bold text-blue-600">AssetHub</span>
+        </Link>
       </div>
       <div className="flex flex-1 flex-col overflow-y-auto pt-4 pb-4">
         <nav className="flex-1 space-y-1 px-3">

@@ -1,8 +1,10 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { getDepartments, getCategories, getEmployees } from "@/app/actions/organization"
-import OrganizationTabs from "@/components/organization/OrganizationTabs"
+import { getDepartments, getCategories, getEmployees, getOrganizationStats, getRecentActivity } from "@/app/actions/organization"
+import OrganizationDashboard from "@/components/organization/OrganizationDashboard"
+
+export const dynamic = 'force-dynamic';
 
 export default async function OrganizationPage() {
   const session = await getServerSession(authOptions)
@@ -11,26 +13,21 @@ export default async function OrganizationPage() {
     redirect("/dashboard")
   }
 
-  const [departments, categories, employees] = await Promise.all([
+  const [departments, categories, employees, stats, activities] = await Promise.all([
     getDepartments(),
     getCategories(),
-    getEmployees()
+    getEmployees(),
+    getOrganizationStats(),
+    getRecentActivity()
   ])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Organization Setup</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Manage departments, asset categories, and employees.
-        </p>
-      </div>
-
-      <OrganizationTabs 
-        initialDepartments={departments}
-        initialCategories={categories}
-        initialEmployees={employees}
-      />
-    </div>
+    <OrganizationDashboard 
+      departments={departments}
+      categories={categories}
+      employees={employees}
+      stats={stats}
+      activities={activities}
+    />
   )
 }
