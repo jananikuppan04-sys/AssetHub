@@ -4,7 +4,8 @@ import Link from "next/link"
 import { ArrowLeft, Building2, Users, Package, Mail, MapPin, Phone, Activity } from "lucide-react"
 import { format } from "date-fns"
 
-export default async function DepartmentDetailPage({ params }: { params: { id: string } }) {
+export default async function DepartmentDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const department = await getDepartmentById(params.id)
 
   if (!department) {

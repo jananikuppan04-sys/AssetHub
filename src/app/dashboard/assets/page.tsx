@@ -2,7 +2,8 @@ import { getAssets } from "@/app/actions/assets"
 import Link from "next/link"
 import { Search, Filter, Plus } from "lucide-react"
 
-export default async function AssetsPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function AssetsPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
   const assets = await getAssets(searchParams)
 
   return (

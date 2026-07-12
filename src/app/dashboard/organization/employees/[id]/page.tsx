@@ -4,7 +4,8 @@ import Link from "next/link"
 import { ArrowLeft, User, Building2, Shield, Calendar, Phone, Mail, FileText, Activity, Wrench, RefreshCw, Box } from "lucide-react"
 import { format } from "date-fns"
 
-export default async function EmployeeDetailPage({ params }: { params: { id: string } }) {
+export default async function EmployeeDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const employee = await getEmployeeById(params.id)
 
   if (!employee) {

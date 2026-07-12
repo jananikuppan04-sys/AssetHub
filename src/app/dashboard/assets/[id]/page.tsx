@@ -4,7 +4,8 @@ import Link from "next/link"
 import { ArrowLeft, Edit, QrCode } from "lucide-react"
 import AssetHealthCard from "@/components/assets/AssetHealthCard"
 
-export default async function AssetProfilePage({ params }: { params: { id: string } }) {
+export default async function AssetProfilePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const asset = await getAssetDetails(params.id)
   
   if (!asset) notFound()
