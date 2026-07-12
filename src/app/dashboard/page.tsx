@@ -59,15 +59,15 @@ export default async function DashboardPage() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {kpis.map((kpi) => (
           <div key={kpi.title} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-500 truncate">{kpi.title}</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{kpi.value}</p>
               </div>
-              <div className={`p-3 rounded-lg ${kpi.bg}`}>
+              <div className={`p-3 rounded-lg shrink-0 ${kpi.bg}`}>
                 <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
               </div>
             </div>
