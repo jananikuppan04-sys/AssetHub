@@ -30,6 +30,8 @@ model User {
   maintenanceTasks  MaintenanceRequest[] @relation("Technician")
   auditRecords      AuditRecord[]
   activityLogs      ActivityLog[]
+  transfersFrom     AssetTransferRequest[] @relation("TransferFromUser")
+  transfersTo       AssetTransferRequest[] @relation("TransferToUser")
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -102,6 +104,7 @@ model Asset {
   maintenanceReqs  MaintenanceRequest[]
   auditRecords     AuditRecord[]
   activityLogs     ActivityLog[]
+  transferRequests AssetTransferRequest[]
 
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -118,11 +121,16 @@ model AssetAllocation {
   departmentId   String?
   department     Department? @relation(fields: [departmentId], references: [id])
   
-  requestDate    DateTime  @default(now())
-  approvalDate   DateTime?
-  returnDate     DateTime?
-  status         String    @default("Pending") // Pending, Approved, Rejected, Returned
-  conditionNotes String?
+  requestDate        DateTime  @default(now())
+  approvalDate       DateTime?
+  expectedReturnDate DateTime?
+  returnDate         DateTime?
+  status             String    @default("Pending") // Pending, Active, Rejected, Return Requested, Returned
+  purpose            String?
+  notes              String?
+  conditionNotes     String?
+  returnCondition    String?
+  returnRemarks      String?
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -136,6 +144,9 @@ model ResourceBooking {
   user         User      @relation(fields: [userId], references: [id])
   startDate    DateTime
   endDate      DateTime
+  purpose      String?
+  participants String?
+  notes        String?
   status       String    @default("Upcoming") // Upcoming, Ongoing, Completed, Cancelled
   
   createdAt    DateTime  @default(now())
@@ -209,4 +220,27 @@ model ActivityLog {
   updatedValue  String?
   
   createdAt    DateTime  @default(now())
+}
+
+model AssetTransferRequest {
+  id              String   @id @default(cuid())
+  assetId         String
+  asset           Asset    @relation(fields: [assetId], references: [id])
+  
+  fromUserId      String
+  fromUser        User     @relation("TransferFromUser", fields: [fromUserId], references: [id])
+  
+  toUserId        String
+  toUser          User     @relation("TransferToUser", fields: [toUserId], references: [id])
+  
+  reason          String
+  priority        String   @default("Medium") // Low, Medium, High
+  comments        String?
+  status          String   @default("Requested") // Requested, Approved, Rejected, Completed
+  
+  requestDate     DateTime @default(now())
+  approvalDate    DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

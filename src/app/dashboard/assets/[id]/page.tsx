@@ -1,13 +1,22 @@
 import { getAssetDetails } from "@/app/actions/assets"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Edit, QrCode } from "lucide-react"
+import { ArrowLeft, Edit, QrCode, CalendarDays } from "lucide-react"
 import AssetHealthCard from "@/components/assets/AssetHealthCard"
+import { format } from "date-fns"
+import { prisma } from "@/lib/prisma"
 
-export default async function AssetProfilePage({ params }: { params: { id: string } }) {
+export default async function AssetProfilePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const asset = await getAssetDetails(params.id)
   
   if (!asset) notFound()
+
+  const bookings = asset.bookable ? await prisma.resourceBooking.findMany({
+    where: { assetId: asset.id },
+    include: { user: true },
+    orderBy: { startDate: 'desc' }
+  }) : []
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -74,7 +83,7 @@ export default async function AssetProfilePage({ params }: { params: { id: strin
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Activity Logs</h2>
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Allocation Timeline & Activity History</h2>
             <div className="flow-root">
               <ul className="-mb-8">
                 {asset.activityLogs.map((log, idx) => (
@@ -97,7 +106,7 @@ export default async function AssetProfilePage({ params }: { params: { id: strin
                             </p>
                           </div>
                           <div className="text-right text-sm whitespace-nowrap text-slate-500">
-                            {new Date(log.createdAt).toLocaleDateString()}
+                            {new Date(log.createdAt).toLocaleDateString()} at {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
                       </div>
@@ -107,6 +116,47 @@ export default async function AssetProfilePage({ params }: { params: { id: strin
               </ul>
             </div>
           </div>
+
+          {asset.bookable && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-900 flex items-center">
+                  <CalendarDays className="h-5 w-5 mr-2 text-purple-600" />
+                  Booking History
+                </h2>
+                <Link href="/dashboard/bookings/new" className="text-sm font-medium text-purple-600 hover:text-purple-700">
+                  Book this resource
+                </Link>
+              </div>
+              
+              <div className="space-y-4">
+                {bookings.length === 0 ? (
+                  <p className="text-sm text-slate-500">No bookings found for this resource.</p>
+                ) : (
+                  bookings.map(booking => (
+                    <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
+                      <div>
+                        <p className="font-medium text-slate-900">{booking.purpose}</p>
+                        <p className="text-sm text-slate-500 mt-1">Booked by {booking.user.name} {booking.participants ? `with ${booking.participants}` : ""}</p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          {format(new Date(booking.startDate), 'MMM d, yyyy h:mm a')} - {format(new Date(booking.endDate), 'h:mm a')}
+                        </p>
+                      </div>
+                      <div className="mt-3 sm:mt-0">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                          ${booking.status === 'Ongoing' ? 'bg-green-100 text-green-800' : 
+                            booking.status === 'Upcoming' ? 'bg-purple-100 text-purple-800' : 
+                            booking.status === 'Completed' ? 'bg-slate-200 text-slate-800' : 
+                            'bg-red-100 text-red-800'}`}>
+                          {booking.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">

@@ -25,23 +25,31 @@ export default async function DashboardPage() {
     maintenanceAssets,
     lostAssets,
     activeBookings,
-    pendingMaintenance
+    pendingMaintenance,
+    pendingTransfers,
+    overdueAllocations,
+    upcomingBookings
   ] = await Promise.all([
     prisma.asset.count(),
     prisma.asset.count({ where: { status: "Allocated" } }),
     prisma.asset.count({ where: { status: "Under Maintenance" } }),
     prisma.asset.count({ where: { status: "Lost" } }),
     prisma.resourceBooking.count({ where: { status: "Ongoing" } }),
-    prisma.maintenanceRequest.count({ where: { status: "Pending" } })
+    prisma.maintenanceRequest.count({ where: { status: "Pending" } }),
+    prisma.assetTransferRequest.count({ where: { status: "Requested" } }),
+    prisma.assetAllocation.count({ where: { status: "Active", expectedReturnDate: { lt: new Date() } } }),
+    prisma.resourceBooking.count({ where: { status: "Upcoming" } })
   ])
 
   const kpis = [
     { title: "Total Assets", value: totalAssets, icon: Package, color: "text-blue-600", bg: "bg-blue-100" },
     { title: "Allocated", value: allocatedAssets, icon: ArrowRightLeft, color: "text-emerald-600", bg: "bg-emerald-100" },
-    { title: "Under Maintenance", value: maintenanceAssets, icon: Wrench, color: "text-amber-600", bg: "bg-amber-100" },
-    { title: "Lost Assets", value: lostAssets, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-100" },
-    { title: "Active Bookings", value: activeBookings, icon: CalendarDays, color: "text-purple-600", bg: "bg-purple-100" },
-    { title: "Pending Fixes", value: pendingMaintenance, icon: Wrench, color: "text-orange-600", bg: "bg-orange-100" },
+    { title: "Pending Transfers", value: pendingTransfers, icon: ArrowRightLeft, color: "text-amber-600", bg: "bg-amber-100" },
+    { title: "Overdue Returns", value: overdueAllocations, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-100" },
+    { title: "Active Bookings", value: activeBookings, icon: CalendarDays, color: "text-indigo-600", bg: "bg-indigo-100" },
+    { title: "Upcoming Bookings", value: upcomingBookings, icon: CalendarDays, color: "text-purple-600", bg: "bg-purple-100" },
+    { title: "Under Maintenance", value: maintenanceAssets, icon: Wrench, color: "text-orange-600", bg: "bg-orange-100" },
+    { title: "Pending Fixes", value: pendingMaintenance, icon: Wrench, color: "text-pink-600", bg: "bg-pink-100" },
   ]
 
   const recentActivity = await prisma.activityLog.findMany({
@@ -59,15 +67,15 @@ export default async function DashboardPage() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (
           <div key={kpi.title} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-500 truncate">{kpi.title}</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{kpi.value}</p>
               </div>
-              <div className={`p-3 rounded-lg ${kpi.bg}`}>
+              <div className={`p-3 rounded-lg shrink-0 ${kpi.bg}`}>
                 <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
               </div>
             </div>
