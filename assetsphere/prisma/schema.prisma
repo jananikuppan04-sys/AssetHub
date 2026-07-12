@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          String    @default("Employee") // Admin, Asset Manager, Department Head, Employee
+  status        String    @default("Active")   // Active, Inactive
+  departmentId  String?
+  department    Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
+  
+  // Relations
+  headedDepartments Department[] @relation("DepartmentHead")
+  allocations       AssetAllocation[]
+  bookings          ResourceBooking[]
+  maintenanceReqs   MaintenanceRequest[] @relation("Requester")
+  maintenanceTasks  MaintenanceRequest[] @relation("Technician")
+  auditRecords      AuditRecord[]
+  activityLogs      ActivityLog[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Department {
+  id            String    @id @default(cuid())
+  name          String
+  active        Boolean   @default(true)
+  
+  parentId      String?
+  parent        Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children      Department[] @relation("DepartmentHierarchy")
+
+  headId        String?
+  head          User?       @relation("DepartmentHead", fields: [headId], references: [id])
+  
+  members       User[]      @relation("DepartmentMembers")
+  assets        Asset[]
+  allocations   AssetAllocation[]
+  auditCycles   AuditCycle[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model AssetCategory {
+  id                          String    @id @default(cuid())
+  name                        String    @unique
+  warrantyPeriodMonths        Int       @default(12)
+  defaultMaintenanceFrequency Int       @default(6) // in months
+  
+  assets                      Asset[]
+
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+}
+
+model Asset {
+  id               String    @id @default(cuid())
+  assetTag         String    @unique // AF-0001
+  name             String
+  categoryId       String
+  category         AssetCategory @relation(fields: [categoryId], references: [id])
+  serialNumber     String?
+  acquisitionDate  DateTime
+  acquisitionCost  Float
+  warranty         String?
+  currentCondition String    @default("Good") // Good, Fair, Poor
+  currentLocation  String?
+  departmentId     String?
+  department       Department? @relation(fields: [departmentId], references: [id])
+  images           String?   // JSON array or comma separated
+  documents        String?   // JSON array or comma separated
+  qrCode           String?
+  bookable         Boolean   @default(false)
+  status           String    @default("Available") // Available, Allocated, Reserved, Under Maintenance, Lost, Retired, Disposed
+
+  allocations      AssetAllocation[]
+  bookings         ResourceBooking[]
+  maintenanceReqs  MaintenanceRequest[]
+  auditRecords     AuditRecord[]
+  activityLogs     ActivityLog[]
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model AssetAllocation {
+  id             String    @id @default(cuid())
+  assetId        String
+  asset          Asset     @relation(fields: [assetId], references: [id])
+  
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id])
+  
+  departmentId   String?
+  department     Department? @relation(fields: [departmentId], references: [id])
+  
+  requestDate    DateTime  @default(now())
+  approvalDate   DateTime?
+  returnDate     DateTime?
+  status         String    @default("Pending") // Pending, Approved, Rejected, Returned
+  conditionNotes String?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ResourceBooking {
+  id           String    @id @default(cuid())
+  assetId      String
+  asset        Asset     @relation(fields: [assetId], references: [id])
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  startDate    DateTime
+  endDate      DateTime
+  status       String    @default("Upcoming") // Upcoming, Ongoing, Completed, Cancelled
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model MaintenanceRequest {
+  id               String    @id @default(cuid())
+  assetId          String
+  asset            Asset     @relation(fields: [assetId], references: [id])
+  
+  requesterId      String
+  requester        User      @relation("Requester", fields: [requesterId], references: [id])
+  
+  technicianId     String?
+  technician       User?     @relation("Technician", fields: [technicianId], references: [id])
+
+  issueDescription String
+  priority         String    @default("Medium") // Low, Medium, High
+  photo            String?
+  status           String    @default("Pending") // Pending, Approved, Rejected, In Progress, Resolved
+  
+  requestDate      DateTime  @default(now())
+  resolveDate      DateTime?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model AuditCycle {
+  id           String    @id @default(cuid())
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  location     String?
+  startDate    DateTime
+  endDate      DateTime
+  status       String    @default("Active") // Active, Completed, Locked
+
+  records      AuditRecord[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model AuditRecord {
+  id           String    @id @default(cuid())
+  auditCycleId String
+  auditCycle   AuditCycle @relation(fields: [auditCycleId], references: [id])
+  
+  assetId      String
+  asset        Asset      @relation(fields: [assetId], references: [id])
+  
+  auditorId    String
+  auditor      User       @relation(fields: [auditorId], references: [id])
+  
+  status       String     // Verified, Missing, Damaged
+  notes        String?
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model ActivityLog {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  action       String    // e.g. "Status Changed", "Allocated"
+  assetId      String?
+  asset        Asset?    @relation(fields: [assetId], references: [id])
+  previousValue String?
+  updatedValue  String?
+  
+  createdAt    DateTime  @default(now())
+}
