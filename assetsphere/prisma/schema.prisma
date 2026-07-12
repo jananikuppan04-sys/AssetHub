@@ -14,6 +14,11 @@ model User {
   password      String
   role          String    @default("Employee") // Admin, Asset Manager, Department Head, Employee
   status        String    @default("Active")   // Active, Inactive
+  employeeId    String?   @unique
+  profilePicture String?
+  phone         String?
+  resetToken    String?
+  resetTokenExpiry DateTime?
   departmentId  String?
   department    Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
   
@@ -33,6 +38,11 @@ model User {
 model Department {
   id            String    @id @default(cuid())
   name          String
+  code          String?   @unique
+  description   String?
+  location      String?
+  email         String?
+  phone         String?
   active        Boolean   @default(true)
   
   parentId      String?
@@ -54,8 +64,12 @@ model Department {
 model AssetCategory {
   id                          String    @id @default(cuid())
   name                        String    @unique
+  code                        String?   @unique
   warrantyPeriodMonths        Int       @default(12)
   defaultMaintenanceFrequency Int       @default(6) // in months
+  icon                        String?
+  metadata                    String?   // JSON string
+  active                      Boolean   @default(true)
   
   assets                      Asset[]
 

@@ -1,5 +1,5 @@
 {
-  "name": "assetsphere",
+  "name": "assethub",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -19,6 +19,7 @@
     "next-auth": "^4.24.14",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-hot-toast": "^2.6.0",
     "recharts": "^3.9.2",
     "tailwind-merge": "^3.6.0"
   },

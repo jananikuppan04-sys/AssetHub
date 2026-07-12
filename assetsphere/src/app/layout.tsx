@@ -6,8 +6,8 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AssetSphere ERP",
-  description: "Enterprise Asset & Resource Management Platform",
+  title: "AssetHub ERP",
+  description: "Enterprise Resource Planning system",
 };
 
 export default function RootLayout({
