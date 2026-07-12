@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
@@ -48,7 +49,7 @@ export async function createAsset(formData: FormData) {
   })
 
   revalidatePath("/dashboard/assets")
-  return asset
+  redirect("/dashboard/assets")
 }
 
 export async function getAssets(searchParams?: any) {
